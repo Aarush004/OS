@@ -1,0 +1,78 @@
+#include <stdio.h>
+
+void calculateWTAndTAT(int n, int bt[], int wt[], int tat[]) {
+    wt[0] = 0;  
+    tat[0] = bt[0];  
+    
+    for (int i = 1; i < n; i++) {
+        wt[i] = bt[i-1] + wt[i-1];  
+        tat[i] = bt[i] + wt[i];  
+    }
+}
+
+int main() {
+    int n, id, priority, bt[20], wt[20], tat[20], processPriority[20];
+    int systemQueue[20], userQueue[20];
+    int sysCount = 0, userCount = 0;
+    int processId[20];
+    int systemId[20], userId[20];  
+    float tatavg = 0, wtavg = 0;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    for (int i = 0; i < n; i++) {
+        printf("Enter Process ID: ");
+        scanf("%d", &id);
+        printf("Enter Priority (0 for User Process, 1 for System Process): ");
+        scanf("%d", &priority);
+        printf("Enter Burst Length for Process %d: ", i + 1);
+        scanf("%d", &bt[i]);
+
+        processId[i] = id;  
+        processPriority[i] = priority;
+        
+        if (priority == 1) {  
+            systemQueue[sysCount] = bt[i];  
+            systemId[sysCount] = id;  
+            sysCount++;
+        } else {
+            userQueue[userCount] = bt[i];  
+            userId[userCount] = id;  
+            userCount++;
+        }
+    }
+
+    int combinedQueue[20], combinedPriority[20], combinedId[20];
+
+    for (int i = 0; i < sysCount; i++) {
+        combinedQueue[i] = systemQueue[i];
+        combinedPriority[i] = 1;  
+        combinedId[i] = systemId[i];  
+    }
+
+    for (int i = 0; i < userCount; i++) {
+        combinedQueue[sysCount + i] = userQueue[i];
+        combinedPriority[sysCount + i] = 0;  
+        combinedId[sysCount + i] = userId[i];  
+    }
+
+    calculateWTAndTAT(n, combinedQueue, wt, tat);
+
+    printf("Process ID\tPriority\tBurst Time\tWaiting Time\tTurnaround Time\n");
+
+    for (int i = 0; i < n; i++) {
+        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\n", combinedId[i], combinedPriority[i], combinedQueue[i], wt[i], tat[i]);
+        tatavg += tat[i];
+        wtavg += wt[i];
+    }
+
+    tatavg /= n;
+    wtavg /= n;
+
+    printf("\nAverage Turnaround Time: %.2f\n", tatavg);
+    printf("Average Waiting Time: %.2f\n", wtavg);
+
+    return 0;
+}
+ 
