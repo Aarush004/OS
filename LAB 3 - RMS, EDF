@@ -1,0 +1,77 @@
+#include <stdio.h>
+
+#define MAX_TASKS 10
+
+typedef struct {
+    int id, period, execution, deadline;
+} Task;
+
+int gcd(int a, int b) {
+    return b == 0 ? a : gcd(b, a % b);
+}
+
+int lcm(int a, int b) {
+    return (a * b) / gcd(a, b);
+}
+
+int calculate_lcm(Task tasks[], int n) {
+    int result = tasks[0].period;
+    for (int i = 1; i < n; i++) {
+        result = lcm(result, tasks[i].period);
+    }
+    return result;
+}
+
+void rate_monotonic(Task tasks[], int n, int lcm_value) {
+    for (int time = 0; time < lcm_value; time++) {
+        printf("Time %d: ", time);
+        for (int i = 0; i < n; i++) {
+            if (time % tasks[i].period == 0) {
+                printf("Task %d is running. ", tasks[i].id);
+            }
+        }
+        printf("\n");
+    }
+}
+
+void earliest_deadline_first(Task tasks[], int n, int lcm_value) {
+    for (int time = 0; time < lcm_value; time++) {
+        for (int i = 0; i < n; i++) {
+            tasks[i].deadline = time + tasks[i].period;
+        }
+
+        int min_index = -1;
+        for (int i = 0; i < n; i++) {
+            if (tasks[i].execution > 0 && (min_index == -1 || tasks[i].deadline < tasks[min_index].deadline)) {
+                min_index = i;
+            }
+        }
+
+        printf("Time %d: ", time);
+        if (min_index != -1) {
+            printf("Task %d is running. ", tasks[min_index].id);
+            tasks[min_index].execution--;
+        } else {
+            printf("Idle. ");
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    Task tasks[MAX_TASKS];
+    int n;
+
+    printf("Enter number of tasks (max %d): ", MAX_TASKS);
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++) {
+        printf("Enter Task %d (ID, Period, Execution Time): ", i + 1);
+        scanf("%d %d %d", &tasks[i].id, &tasks[i].period, &tasks[i].execution);
+    }
+
+    int lcm_value = calculate_lcm(tasks, n);
+    rate_monotonic(tasks, n, lcm_value);
+    earliest_deadline_first(tasks, n, lcm_value);
+
+    return 0;
+}
